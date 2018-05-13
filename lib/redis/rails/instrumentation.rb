@@ -14,18 +14,14 @@ class Redis
         event :command do |event|
           next unless logger.debug?
           cmds = event.payload[:commands]
-          boolean = true
-          output = cmds.map do |name, *args|
-            if 'BRPOP' == name.to_s.upcase
-              boolean = false
-            end                                                  
+          output = cmds.map do |name, *args|                                     
             if !args.empty?
               "[ #{name.to_s.upcase} #{format_arguments(args)} ]"
             else
               "[ #{name.to_s.upcase} ]"
             end
           end.join(' ')
-          if boolean
+          unless output.include?('sidekiq')
             debug message(event, 'Redis', output)
           end
         end
